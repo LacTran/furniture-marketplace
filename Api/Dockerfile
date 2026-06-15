@@ -13,9 +13,11 @@ FROM mcr.microsoft.com/dotnet/aspnet:8.0 AS runtime
 WORKDIR /app
 COPY --from=build /app .
 
-# Cloud platforms (Fly.io, Render, Azure Container Apps) typically inject PORT;
-# ASP.NET Core listens on ASPNETCORE_URLS.
-ENV ASPNETCORE_URLS=http://+:8080
+# Render (and many other platforms) inject a $PORT env var at runtime and
+# expect the app to listen on it. Default to 8080 for local `docker run`.
 EXPOSE 8080
+ENV PORT=8080
 
-ENTRYPOINT ["dotnet", "Api.dll"]
+# Using a shell entrypoint so we can read $PORT at container start time
+# (ENV substitution doesn't work inside ASPNETCORE_URLS otherwise).
+ENTRYPOINT ["sh", "-c", "ASPNETCORE_URLS=http://+:${PORT} dotnet Api.dll"]
