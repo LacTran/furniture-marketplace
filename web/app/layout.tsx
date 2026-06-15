@@ -1,5 +1,6 @@
 import type { Metadata } from 'next';
 import './globals.css';
+import { ApiWarmup } from './ApiWarmup';
 
 export const metadata: Metadata = {
   title: 'Furniture Marketplace',
@@ -14,6 +15,7 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className="min-h-screen bg-gray-50 text-gray-900">
+        <ApiWarmup />
         <nav className="border-b bg-white px-6 py-4">
           <div className="mx-auto flex max-w-4xl items-center justify-between">
             <a href="/" className="font-semibold">
