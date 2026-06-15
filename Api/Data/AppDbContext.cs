@@ -14,12 +14,37 @@ public class AppDbContext : IdentityDbContext<ApplicationUser, IdentityRole, str
     {
     }
 
+    public DbSet<Post> Posts => Set<Post>();
+
     protected override void OnModelCreating(ModelBuilder builder)
     {
         base.OnModelCreating(builder);
 
-        // Example customization: Identity defaults some string columns to
-        // very large lengths, which Postgres handles fine, but it's worth
-        // being deliberate. Left as default for now — revisit if needed.
+        // A Post's Owner and AcceptedBy both point at ApplicationUser, but
+        // EF Core can't infer two separate relationships to the same entity
+        // automatically — we configure each explicitly and disable cascade
+        // delete so that deleting a user doesn't cascade-delete unrelated posts.
+        builder.Entity<Post>()
+            .HasOne(p => p.Owner)
+            .WithMany()
+            .HasForeignKey(p => p.OwnerId)
+            .OnDelete(DeleteBehavior.Restrict);
+
+        builder.Entity<Post>()
+            .HasOne(p => p.AcceptedBy)
+            .WithMany()
+            .HasForeignKey(p => p.AcceptedByUserId)
+            .OnDelete(DeleteBehavior.Restrict);
+
+        // Store enums as strings in Postgres rather than ints — much easier
+        // to read when inspecting the DB directly (e.g. via Neon's SQL editor),
+        // at a negligible storage cost for a project this size.
+        builder.Entity<Post>()
+            .Property(p => p.Type)
+            .HasConversion<string>();
+
+        builder.Entity<Post>()
+            .Property(p => p.Status)
+            .HasConversion<string>();
     }
 }
