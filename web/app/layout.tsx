@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
 import './globals.css';
 import { ApiWarmup } from './ApiWarmup';
+import { NavLinks } from './NavLinks';
 
 export const metadata: Metadata = {
   title: 'Furniture Marketplace',
@@ -21,14 +22,7 @@ export default function RootLayout({
             <a href="/" className="font-semibold">
               Furniture Marketplace
             </a>
-            <div className="space-x-4 text-sm">
-              <a href="/login" className="hover:underline">
-                Log in
-              </a>
-              <a href="/register" className="hover:underline">
-                Register
-              </a>
-            </div>
+            <NavLinks />
           </div>
         </nav>
         <main className="mx-auto max-w-4xl px-6 py-8">{children}</main>
