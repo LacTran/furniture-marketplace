@@ -15,6 +15,7 @@ public class AppDbContext : IdentityDbContext<ApplicationUser, IdentityRole, str
     }
 
     public DbSet<Post> Posts => Set<Post>();
+    public DbSet<Favorite> Favorites => Set<Favorite>();
 
     protected override void OnModelCreating(ModelBuilder builder)
     {
@@ -46,5 +47,23 @@ public class AppDbContext : IdentityDbContext<ApplicationUser, IdentityRole, str
         builder.Entity<Post>()
             .Property(p => p.Status)
             .HasConversion<string>();
+
+        // Composite primary key: a user can favorite a given post at most once.
+        builder.Entity<Favorite>()
+            .HasKey(f => new { f.UserId, f.PostId });
+
+        builder.Entity<Favorite>()
+            .HasOne(f => f.User)
+            .WithMany()
+            .HasForeignKey(f => f.UserId)
+            .OnDelete(DeleteBehavior.Restrict);
+
+        // If a post is deleted, its favorites should go with it — unlike
+        // Post.Owner/AcceptedBy above, there's no meaningful "orphaned favorite".
+        builder.Entity<Favorite>()
+            .HasOne(f => f.Post)
+            .WithMany()
+            .HasForeignKey(f => f.PostId)
+            .OnDelete(DeleteBehavior.Cascade);
     }
 }

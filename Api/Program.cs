@@ -6,6 +6,7 @@ using Microsoft.IdentityModel.Tokens;
 using Api.Data;
 using Api.Features.Auth;
 using Api.Features.Posts;
+using Api.Features.Favorites;
 
 var builder = WebApplication.CreateBuilder(args);
 builder.Services.ConfigureHttpJsonOptions(options =>
@@ -123,6 +124,7 @@ app.UseAuthorization();
 
 app.MapAuthEndpoints();
 app.MapPostsEndpoints();
+app.MapFavoritesEndpoints();
 
 app.MapGet("/health", () => Results.Ok(new { status = "ok", timestamp = DateTime.UtcNow }))
    .WithTags("Health");
