@@ -33,6 +33,7 @@ It's built primarily as a demonstration of full-stack and applied-AI engineering
 | Backend | ASP.NET Core 8 (Minimal APIs), EF Core 8, ASP.NET Core Identity, JWT auth |
 | Database | PostgreSQL (via [Neon](https://neon.tech), serverless/free-tier) |
 | Hosting | [Vercel](https://vercel.com) (web), [Render](https://render.com) (API, Dockerized) |
+| CI/CD Pipeline | GitHub Actions (`.github/workflows/ci.yml` & `.github/workflows/cd.yml`) |
 | Planned (AI layer) | `pgvector`, LangChain/LangGraph, MCP TypeScript SDK |
 
 ## Architecture
