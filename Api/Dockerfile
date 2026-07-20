@@ -17,6 +17,7 @@ COPY --from=build /app .
 # expect the app to listen on it. Default to 8080 for local `docker run`.
 EXPOSE 8080
 ENV PORT=8080
+ENV DOTNET_USE_POLLING_FILE_WATCHER=true
 
 # Using a shell entrypoint so we can read $PORT at container start time
 # (ENV substitution doesn't work inside ASPNETCORE_URLS otherwise).
