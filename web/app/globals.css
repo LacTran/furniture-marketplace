@@ -1,3 +1,154 @@
+@import url('https://fonts.googleapis.com/css2?family=Bodoni+Moda:wght@400;500;600;700&family=Jost:wght@300;400;500;600;700&display=swap');
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+:root {
+  --color-primary: #7C3AED;
+  --color-on-primary: #FFFFFF;
+  --color-secondary: #A78BFA;
+  --color-accent: #16A34A;
+  --color-background: #FAF5FF;
+  --color-foreground: #4C1D95;
+  --color-muted: #ECEEF9;
+  --color-border: #DDD6FE;
+  --color-destructive: #DC2626;
+  --color-ring: #7C3AED;
+
+  --space-xs: 0.25rem;
+  --space-sm: 0.5rem;
+  --space-md: 1rem;
+  --space-lg: 1.5rem;
+  --space-xl: 2rem;
+  --space-2xl: 3rem;
+  --space-3xl: 4rem;
+
+  --shadow-sm: 0 1px 2px rgba(124, 58, 237, 0.05);
+  --shadow-md: 0 4px 6px rgba(124, 58, 237, 0.08);
+  --shadow-lg: 0 10px 15px rgba(124, 58, 237, 0.1);
+  --shadow-xl: 0 20px 25px rgba(124, 58, 237, 0.15);
+}
+
+@layer base {
+  body {
+    background-color: var(--color-background);
+    color: var(--color-foreground);
+    font-family: 'Jost', sans-serif;
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    font-family: 'Bodoni Moda', serif;
+  }
+}
+
+@layer utilities {
+  .font-serif {
+    font-family: 'Bodoni Moda', serif;
+  }
+  .font-jost {
+    font-family: 'Jost', sans-serif;
+  }
+}
+
+@layer components {
+  /* MASTER.md Header Layout Specification */
+  .layout-header {
+    background-color: rgba(255, 255, 255, 0.9);
+    border-bottom: 1px solid var(--color-border);
+    backdrop-filter: blur(12px);
+    position: sticky;
+    top: 0;
+    z-index: 50;
+    padding: var(--space-sm) var(--space-md);
+    box-shadow: var(--shadow-sm);
+  }
+
+  /* MASTER.md Main Container Specification */
+  .layout-main {
+    max-width: 64rem;
+    margin-left: auto;
+    margin-right: auto;
+    width: 100%;
+    padding: var(--space-xl) var(--space-md);
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start;
+  }
+
+  /* MASTER.md Card Specification */
+  .card {
+    background-color: #FFFFFF;
+    border: 1px solid var(--color-border);
+    border-radius: 12px;
+    padding: 24px;
+    box-shadow: var(--shadow-md);
+    transition: all 200ms ease;
+    cursor: pointer;
+  }
+
+  .card:hover {
+    box-shadow: var(--shadow-lg);
+    transform: translateY(-2px);
+  }
+
+  /* MASTER.md Primary Button Specification */
+  .btn-primary {
+    background-color: var(--color-accent);
+    color: #FFFFFF;
+    padding: 12px 24px;
+    border-radius: 8px;
+    font-weight: 600;
+    transition: all 200ms ease;
+    cursor: pointer;
+  }
+
+  .btn-primary:hover {
+    opacity: 0.92;
+    transform: translateY(-1px);
+  }
+
+  /* MASTER.md Secondary Button Specification */
+  .btn-secondary {
+    background-color: transparent;
+    color: var(--color-primary);
+    border: 2px solid var(--color-primary);
+    padding: 12px 24px;
+    border-radius: 8px;
+    font-weight: 600;
+    transition: all 200ms ease;
+    cursor: pointer;
+  }
+
+  .btn-secondary:hover {
+    background-color: var(--color-background);
+    transform: translateY(-1px);
+  }
+
+  /* Landing Typography & Hero Elements */
+  .hero-title {
+    font-family: 'Bodoni Moda', serif;
+    @apply text-4xl sm:text-5xl font-bold tracking-tight text-[#4C1D95] leading-tight;
+  }
+
+  .hero-subtitle {
+    @apply text-lg text-[#4C1D95]/80 max-w-xl mx-auto leading-relaxed;
+  }
+
+  .icon-badge {
+    @apply h-10 w-10 rounded-xl flex items-center justify-center font-bold mb-4 border;
+  }
+
+  .icon-badge-purple {
+    @apply icon-badge bg-[#FAF5FF] text-[#7C3AED] border-[#DDD6FE];
+  }
+
+  .icon-badge-emerald {
+    @apply icon-badge bg-emerald-50 text-emerald-700 border-emerald-200;
+  }
+
+  .cta-banner {
+    @apply rounded-2xl border border-[#DDD6FE] bg-white p-8 text-center space-y-4 shadow-sm;
+  }
+}
