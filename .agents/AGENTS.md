@@ -21,3 +21,17 @@
   1. **API Backend**: Deploys Dockerized ASP.NET Core API to Render (via `RENDER_DEPLOY_HOOK_URL` / Auto-Deploy).
   2. **Web Client**: Deploys Next.js application to Vercel Production (`VERCEL_TOKEN`).
   3. **Mobile Client**: Publishes Expo OTA updates via EAS CLI (`EXPO_TOKEN`).
+
+## 4. Design System & UI/UX Standards
+* **Source of Truth**: All UI components, layouts, colors, and accessibility rules MUST strictly follow [design-system/kyydiss/MASTER.md](file:///Users/trangialac/LacTran/furrniture-marketplace/design-system/kyydiss/MASTER.md).
+* **Key Enforcement**:
+  * No emojis as icons (use standard SVG icons).
+  * Minimum 4.5:1 WCAG text contrast ratio.
+  * Explicit `cursor-pointer` on all interactive elements.
+
+## 5. Real-World SaaS Transformation Roadmap & User Flow
+* **SaaS Roadmap & Architectural Checkpoints**: Documented in [.agents/references/saas_transformation_roadmap.md](file:///Users/trangialac/LacTran/furrniture-marketplace/.agents/references/saas_transformation_roadmap.md).
+* **SaaS User Flow State Machine**: Documented in [.agents/references/saas_user_flow.md](file:///Users/trangialac/LacTran/furrniture-marketplace/.agents/references/saas_user_flow.md).
+
+## 6. Communication & Execution Preferences
+* **Inquiry vs. Action**: When the user asks a question, requests a recommendation, or inquires about an idea/approach, explain the concept and outline the proposed plan FIRST. Do NOT execute code edits or modifying commands until the user explicitly confirms or asks to proceed.
