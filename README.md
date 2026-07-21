@@ -97,6 +97,7 @@ This project deliberately favors a working, deployable core over completeness. D
 - **No photo uploads yet.** Posts are text/structured-data only for now; image upload via Azure Blob/S3 is a natural next step.
 - **Free-text location fields**, not geocoded lat/lng — keeps the MVP simple; a map view would need real geocoding.
 - **First-come-first-accepted, no formal driver vetting** — appropriate for a demo; a real deployment would need identity verification and a reputation system.
+- **Next Step — Heartwarming Platform UI (Web & Mobile):** Building a heartwarming landing page and platform UI across both web and mobile apps featuring motion-driven cards, interactive search filters, and adoption CTAs.
 - **Planned, not yet built:** RAG-based post enrichment (price/category suggestions via `pgvector`), a LangGraph route-matching agent, and an MCP server exposing marketplace data for agentic querying.
 
 ## License
