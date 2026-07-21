@@ -4,6 +4,10 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { apiFetch, ApiError } from '@/lib/api';
 import { useAuthStore } from '@/lib/auth-store';
+import { Button } from '@/components/ui/Button';
+import { Input } from '@/components/ui/Input';
+import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from '@/components/ui/Card';
+import { BrandLogo } from '@/components/ui/BrandLogo';
 
 interface AuthResponse {
   token: string;
@@ -52,40 +56,55 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="max-w-sm">
-      <h1 className="mb-4 text-2xl font-bold">Log in</h1>
-      <form onSubmit={handleSubmit} className="space-y-3">
-        <div>
-          <label className="block text-sm font-medium">Email</label>
-          <input
-            type="email"
-            required
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            className="mt-1 w-full rounded border px-3 py-2"
-          />
-        </div>
-        <div>
-          <label className="block text-sm font-medium">Password</label>
-          <input
-            type="password"
-            required
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            className="mt-1 w-full rounded border px-3 py-2"
-          />
-        </div>
+    <div className="max-w-md w-full mx-auto my-12">
+      <Card>
+        <CardHeader className="text-center mb-8">
+          <div className="flex justify-center mb-3">
+            <BrandLogo />
+          </div>
+          <CardTitle className="text-2xl mt-1 text-foreground">Welcome Back</CardTitle>
+          <CardDescription>Sign in to coordinate your furniture transport.</CardDescription>
+        </CardHeader>
 
-        {error && <p className="text-sm text-red-600">{error}</p>}
+        <form onSubmit={handleSubmit}>
+          <CardContent className="space-y-4">
+            <Input
+              label="Email Address"
+              type="email"
+              required
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              placeholder="name@example.com"
+            />
 
-        <button
-          type="submit"
-          disabled={loading}
-          className="w-full rounded bg-blue-600 px-4 py-2 text-white hover:bg-blue-500 disabled:opacity-50"
-        >
-          {loading ? 'Logging in...' : 'Log in'}
-        </button>
-      </form>
+            <Input
+              label="Password"
+              type="password"
+              required
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              placeholder="••••••••"
+            />
+
+            {error && (
+              <div className="p-3 bg-rose-50 border border-rose-200 text-rose-700 text-xs font-semibold rounded-xl">
+                {error}
+              </div>
+            )}
+
+            <Button type="submit" isLoading={loading} variant="primary" className="w-full">
+              Sign In
+            </Button>
+          </CardContent>
+        </form>
+
+        <CardFooter className="justify-center text-xs text-slate-500">
+          Don&apos;t have an account?{' '}
+          <a href="/register" className="font-bold text-primary hover:opacity-80 underline transition-opacity ml-1">
+            Register here
+          </a>
+        </CardFooter>
+      </Card>
     </div>
   );
 }

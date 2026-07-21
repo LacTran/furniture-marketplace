@@ -3,6 +3,12 @@
 import { useEffect, useState } from 'react';
 import { useAuthStore } from '@/lib/auth-store';
 import { apiFetch, ApiError } from '@/lib/api';
+import { Button } from '@/components/ui/Button';
+import { HeroSection } from '@/components/landing/HeroSection';
+import { FeatureGrid } from '@/components/landing/FeatureGrid';
+import { AdoptionBanner } from '@/components/landing/AdoptionBanner';
+import { UserDashboard } from '@/components/landing/UserDashboard';
+import { ApiInspector } from '@/components/landing/ApiInspector';
 
 interface MeResponse {
   userId: string;
@@ -15,8 +21,6 @@ export default function HomePage() {
   const [me, setMe] = useState<MeResponse | null>(null);
   const [error, setError] = useState<string | null>(null);
 
-  // On load, if we have a token, call /api/auth/me to prove the
-  // whole chain works: Next.js -> .NET API -> JWT validation -> DB lookup.
   useEffect(() => {
     if (!token) return;
 
@@ -33,45 +37,34 @@ export default function HomePage() {
 
   if (!token) {
     return (
-      <div className="space-y-2">
-        <h1 className="text-2xl font-bold">Welcome 👋</h1>
-        <p className="text-gray-600">
-          You&apos;re not logged in. Try{' '}
-          <a href="/register" className="underline">
-            registering
-          </a>{' '}
-          or{' '}
-          <a href="/login" className="underline">
-            logging in
-          </a>
-          .
-        </p>
+      <div className="space-y-16 py-6">
+        <HeroSection />
+        <FeatureGrid />
+        <AdoptionBanner />
       </div>
     );
   }
 
   return (
-    <div className="space-y-4">
-      <h1 className="text-2xl font-bold">Welcome back, {user?.displayName} 👋</h1>
-
-      <div className="rounded border bg-white p-4">
-        <h2 className="mb-2 font-semibold">/api/auth/me response:</h2>
-        {error && <p className="text-red-600">{error}</p>}
-        {me ? (
-          <pre className="rounded bg-gray-100 p-3 text-sm">
-            {JSON.stringify(me, null, 2)}
-          </pre>
-        ) : !error ? (
-          <p className="text-gray-500">Loading...</p>
-        ) : null}
+    <div className="space-y-8 py-4">
+      {/* Welcome Header */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-border pb-6">
+        <div>
+          <h1 className="text-3xl font-extrabold text-foreground tracking-tight font-serif">
+            Welcome back, <span className="text-primary">{user?.displayName}</span>!
+          </h1>
+          <p className="text-slate-500 mt-1 text-sm">Manage your rehoming listings and active deliveries.</p>
+        </div>
+        <div className="flex items-center gap-3">
+          <a href="/posts/new">
+            <Button variant="primary">+ Create New Post</Button>
+          </a>
+          <Button variant="outline" onClick={logout}>Sign Out</Button>
+        </div>
       </div>
 
-      <button
-        onClick={logout}
-        className="rounded bg-gray-800 px-4 py-2 text-sm text-white hover:bg-gray-700"
-      >
-        Log out
-      </button>
+      <UserDashboard user={user} />
+      <ApiInspector meData={me} error={error} />
     </div>
   );
 }

@@ -5,6 +5,11 @@ import { useRouter } from 'next/navigation';
 import { apiFetch, ApiError } from '@/lib/api';
 import { useAuthStore } from '@/lib/auth-store';
 import { CreatePostRequest, Post, PostType } from '@/lib/types';
+import { Button } from '@/components/ui/Button';
+import { Input } from '@/components/ui/Input';
+import { AuthRequiredBanner } from '@/components/posts/new/AuthRequiredBanner';
+import { PostTypeSelector } from '@/components/posts/new/PostTypeSelector';
+import { PhysicalDimensionsInput } from '@/components/posts/new/PhysicalDimensionsInput';
 
 export default function NewPostPage() {
   const router = useRouter();
@@ -25,22 +30,9 @@ export default function NewPostPage() {
   const [loading, setLoading] = useState(false);
 
   if (!token) {
-    return (
-      <div className="space-y-2">
-        <h1 className="text-2xl font-bold">New post</h1>
-        <p className="text-gray-600">
-          You need to{' '}
-          <a href="/login" className="underline">
-            log in
-          </a>{' '}
-          first.
-        </p>
-      </div>
-    );
+    return <AuthRequiredBanner />;
   }
 
-  // Converts an empty string to undefined, otherwise parses as a number.
-  // Keeps optional numeric fields genuinely optional rather than sending 0.
   function toNumber(value: string): number | undefined {
     if (value.trim() === '') return undefined;
     const n = Number(value);
@@ -72,11 +64,8 @@ export default function NewPostPage() {
     };
 
     try {
-      const post = await apiFetch<Post>('/api/posts', { method: 'POST', body, token });
+      await apiFetch<Post>('/api/posts', { method: 'POST', body, token });
       router.push('/posts');
-      // (router.push is fire-and-forget; this avoids an unused-var warning
-      // if we later want to show "post created: {post.id}")
-      void post;
     } catch (err) {
       setError(err instanceof ApiError ? err.message : 'Failed to create post. Is the API running?');
     } finally {
@@ -85,134 +74,83 @@ export default function NewPostPage() {
   }
 
   return (
-    <div className="max-w-lg">
-      <h1 className="mb-4 text-2xl font-bold">New post</h1>
+    <div className="max-w-xl mx-auto py-2">
+      <div className="mb-8">
+        <h1 className="text-3xl font-extrabold text-slate-900 tracking-tight">Post Furniture to Rehome</h1>
+        <p className="text-slate-500 text-sm mt-1">Specify item details and locations to find a local driver.</p>
+      </div>
 
-      <form onSubmit={handleSubmit} className="space-y-4">
-        <div>
-          <label className="block text-sm font-medium">Post type</label>
-          <div className="mt-1 space-y-1">
-            <label className="flex items-center gap-2 text-sm">
-              <input
-                type="radio"
-                checked={type === 'ItemAvailable'}
-                onChange={() => setType('ItemAvailable')}
-              />
-              📦 Item available — drivers can favorite for later
-            </label>
-            <label className="flex items-center gap-2 text-sm">
-              <input
-                type="radio"
-                checked={type === 'PickupRequest'}
-                onChange={() => setType('PickupRequest')}
-              />
-              🚗 ASAP — needs pickup now
-            </label>
-          </div>
-        </div>
+      <form onSubmit={handleSubmit} className="space-y-6">
+        <PostTypeSelector selectedType={type} onSelectType={setType} />
 
-        <div>
-          <label className="block text-sm font-medium">Title *</label>
-          <input
-            type="text"
-            required
-            value={title}
-            onChange={(e) => setTitle(e.target.value)}
-            placeholder="e.g. Wooden dining chair"
-            className="mt-1 w-full rounded border px-3 py-2"
-          />
-        </div>
+        <Input
+          label="Item Title *"
+          type="text"
+          required
+          value={title}
+          onChange={(e) => setTitle(e.target.value)}
+          placeholder="e.g. Wooden Dining Chair / IKEA Armchair"
+        />
 
-        <div>
-          <label className="block text-sm font-medium">Description</label>
+        <div className="space-y-1.5">
+          <label className="block text-sm font-bold text-slate-800">Description</label>
           <textarea
             value={description}
             onChange={(e) => setDescription(e.target.value)}
-            placeholder="Condition, assembly notes, anything a driver should know"
-            className="mt-1 w-full rounded border px-3 py-2"
+            placeholder="Condition, disassembly notes, stairs/elevator details..."
+            className="w-full rounded-xl border border-border px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary bg-white text-foreground"
             rows={3}
           />
         </div>
 
-        <div className="grid grid-cols-2 gap-3">
-          <div>
-            <label className="block text-sm font-medium">Pickup area *</label>
-            <input
-              type="text"
-              required
-              value={pickupArea}
-              onChange={(e) => setPickupArea(e.target.value)}
-              placeholder="e.g. Kallio"
-              className="mt-1 w-full rounded border px-3 py-2"
-            />
-          </div>
-          <div>
-            <label className="block text-sm font-medium">Dropoff area *</label>
-            <input
-              type="text"
-              required
-              value={dropoffArea}
-              onChange={(e) => setDropoffArea(e.target.value)}
-              placeholder="e.g. Vallila"
-              className="mt-1 w-full rounded border px-3 py-2"
-            />
-          </div>
-        </div>
-
-        <div>
-          <label className="block text-sm font-medium">Dimensions &amp; weight (optional)</label>
-          <div className="mt-1 grid grid-cols-4 gap-2">
-            <input
-              type="number"
-              value={lengthCm}
-              onChange={(e) => setLengthCm(e.target.value)}
-              placeholder="L (cm)"
-              className="rounded border px-2 py-2 text-sm"
-            />
-            <input
-              type="number"
-              value={widthCm}
-              onChange={(e) => setWidthCm(e.target.value)}
-              placeholder="W (cm)"
-              className="rounded border px-2 py-2 text-sm"
-            />
-            <input
-              type="number"
-              value={heightCm}
-              onChange={(e) => setHeightCm(e.target.value)}
-              placeholder="H (cm)"
-              className="rounded border px-2 py-2 text-sm"
-            />
-            <input
-              type="number"
-              value={weightKg}
-              onChange={(e) => setWeightKg(e.target.value)}
-              placeholder="kg"
-              className="rounded border px-2 py-2 text-sm"
-            />
-          </div>
-        </div>
-
-        <div>
-          <label className="block text-sm font-medium">Price offered (€, optional)</label>
-          <input
-            type="number"
-            value={priceOffered}
-            onChange={(e) => setPriceOffered(e.target.value)}
-            placeholder="e.g. 15"
-            className="mt-1 w-full rounded border px-3 py-2"
+        <div className="grid sm:grid-cols-2 gap-4">
+          <Input
+            label="Pickup Location *"
+            type="text"
+            required
+            value={pickupArea}
+            onChange={(e) => setPickupArea(e.target.value)}
+            placeholder="e.g. Kallio, Helsinki"
+          />
+          <Input
+            label="Dropoff Location *"
+            type="text"
+            required
+            value={dropoffArea}
+            onChange={(e) => setDropoffArea(e.target.value)}
+            placeholder="e.g. Vallila, Helsinki"
           />
         </div>
 
-        {error && <p className="text-sm text-red-600">{error}</p>}
+        <PhysicalDimensionsInput
+          lengthCm={lengthCm}
+          widthCm={widthCm}
+          heightCm={heightCm}
+          weightKg={weightKg}
+          onChangeLength={setLengthCm}
+          onChangeWidth={setWidthCm}
+          onChangeHeight={setHeightCm}
+          onChangeWeight={setWeightKg}
+        />
 
-        <button
-          type="submit"
-          disabled={loading}
-          className="w-full rounded bg-blue-600 px-4 py-2 text-white hover:bg-blue-500 disabled:opacity-50"
-        >
-          {loading ? 'Posting...' : 'Create post'}
-        </button>
+        <Input
+          label="Price Offered (€, optional)"
+          type="number"
+          value={priceOffered}
+          onChange={(e) => setPriceOffered(e.target.value)}
+          placeholder="e.g. 20"
+          leftIcon={<span className="font-bold text-sm">€</span>}
+        />
+
+        {error && (
+          <div className="p-3 bg-rose-50 border border-rose-200 text-rose-700 text-xs font-semibold rounded-xl">
+            {error}
+          </div>
+        )}
+
+        <Button type="submit" isLoading={loading} variant="primary" className="w-full">
+          Publish Rehoming Request
+        </Button>
       </form>
     </div>
   );
