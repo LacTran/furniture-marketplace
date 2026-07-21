@@ -1,137 +1,183 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { apiFetch, ApiError } from '@/lib/api';
 import { Post, PostType } from '@/lib/types';
 import { useAuthStore } from '@/lib/auth-store';
-
-const TYPE_LABELS: Record<PostType, string> = {
-  ItemAvailable: '📦 Item available (favorite for later)',
-  PickupRequest: '🚗 ASAP — needs pickup now',
-};
+import { useDebouncedCallback } from '@/lib/use-debounce';
+import { EmptyState } from '@/components/ui/EmptyState';
+import { PostsHeader } from '@/components/posts/PostsHeader';
+import { PostsTabBar, ViewTab } from '@/components/posts/PostsTabBar';
+import { PostsToolbar } from '@/components/posts/PostsToolbar';
+import { PostItemCard } from '@/components/posts/PostItemCard';
 
 export default function PostsBrowsePage() {
   const token = useAuthStore((s) => s.token);
+  const user = useAuthStore((s) => s.user);
 
   const [posts, setPosts] = useState<Post[]>([]);
+  const [favoritedIds, setFavoritedIds] = useState<Set<string>>(new Set());
+  const [activeTab, setActiveTab] = useState<ViewTab>('market');
   const [filterType, setFilterType] = useState<PostType | 'All'>('All');
+  const [searchArea, setSearchArea] = useState('');
+  const [debouncedSearch, setDebouncedSearch] = useState('');
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  // Re-fetch whenever the type filter changes.
-  useEffect(() => {
+  const updateSearch = useDebouncedCallback((val: string) => {
+    setDebouncedSearch(val.trim());
+  }, 350);
+
+  const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setSearchArea(e.target.value);
+    updateSearch(e.target.value);
+  };
+
+  const loadData = useCallback(async () => {
     setLoading(true);
     setError(null);
+    try {
+      let favsList: Post[] = [];
+      if (token) {
+        favsList = await apiFetch<Post[]>('/api/favorites', { token });
+        setFavoritedIds(new Set(favsList.map((p) => p.id)));
+      }
 
-    const query = filterType !== 'All' ? `?type=${filterType}` : '';
+      let list: Post[] = [];
+      if (activeTab === 'market') {
+        const typeQuery = filterType !== 'All' ? `&type=${filterType}` : '';
+        const searchCtx = debouncedSearch ? `&pickupArea=${encodeURIComponent(debouncedSearch)}` : '';
+        list = await apiFetch<Post[]>(`/api/posts?status=Open${typeQuery}${searchCtx}`);
+      } else if (activeTab === 'favorites') {
+        list = favsList;
+      } else if (activeTab === 'mine') {
+        if (!token) throw new Error('Authentication required.');
+        list = await apiFetch<Post[]>('/api/posts/mine', { token });
+      }
 
-    apiFetch<Post[]>(`/api/posts${query}`)
-      .then(setPosts)
-      .catch((err) => {
-        setError(err instanceof ApiError ? err.message : 'Failed to load posts. Is the API running?');
-      })
-      .finally(() => setLoading(false));
-  }, [filterType]);
+      setPosts(list);
+    } catch (err) {
+      setError(err instanceof ApiError ? err.message : 'Failed to load listings.');
+    } finally {
+      setLoading(false);
+    }
+  }, [token, activeTab, filterType, debouncedSearch]);
+
+  useEffect(() => {
+    loadData();
+  }, [loadData]);
 
   async function handleAccept(postId: string) {
     if (!token) return;
+    if (window.confirm('Are you sure you want to accept this delivery? You will be responsible for completing it.')) {
+      try {
+        const updated = await apiFetch<Post>(`/api/posts/${postId}/accept`, {
+          method: 'POST',
+          token,
+        });
+        setPosts((prev) => prev.map((p) => (p.id === updated.id ? updated : p)));
+        alert(`Successfully accepted "${updated.title}"!`);
+        loadData();
+      } catch (err) {
+        alert(err instanceof ApiError ? err.message : 'Failed to accept delivery.');
+      }
+    }
+  }
 
+  async function handleToggleFavorite(post: Post) {
+    if (!token) {
+      alert('Please sign in to add items to your saved list.');
+      return;
+    }
+    const isFav = favoritedIds.has(post.id);
     try {
-      const updated = await apiFetch<Post>(`/api/posts/${postId}/accept`, {
-        method: 'POST',
+      await apiFetch(`/api/posts/${post.id}/favorite`, {
+        method: isFav ? 'DELETE' : 'POST',
         token,
       });
-      setPosts((prev) => prev.map((p) => (p.id === updated.id ? updated : p)));
-    } catch (err) {
-      alert(err instanceof ApiError ? err.message : 'Failed to accept post.');
+      setFavoritedIds((prev) => {
+        const next = new Set(prev);
+        isFav ? next.delete(post.id) : next.add(post.id);
+        return next;
+      });
+
+      if (activeTab === 'favorites' && isFav) {
+        setPosts((prev) => prev.filter((p) => p.id !== post.id));
+      }
+    } catch {
+      alert('Failed to update favorite status.');
     }
   }
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold">Browse posts</h1>
-        {token ? (
-          <a
-            href="/posts/new"
-            className="rounded bg-blue-600 px-4 py-2 text-sm text-white hover:bg-blue-500"
-          >
-            + New post
-          </a>
-        ) : (
-          <a href="/login" className="text-sm underline">
-            Log in to post
-          </a>
-        )}
-      </div>
+    <div className="space-y-8">
+      <PostsHeader token={token} />
 
-      <div className="flex gap-2 text-sm">
-        {(['All', 'ItemAvailable', 'PickupRequest'] as const).map((t) => (
-          <button
-            key={t}
-            onClick={() => setFilterType(t)}
-            className={`rounded px-3 py-1 border ${
-              filterType === t ? 'bg-gray-800 text-white' : 'bg-white hover:bg-gray-100'
-            }`}
-          >
-            {t === 'All' ? 'All' : TYPE_LABELS[t]}
-          </button>
-        ))}
-      </div>
-
-      {loading && <p className="text-gray-500">Loading...</p>}
-      {error && <p className="text-red-600">{error}</p>}
-
-      {!loading && !error && posts.length === 0 && (
-        <p className="text-gray-500">No open posts yet — be the first to create one.</p>
+      {token && (
+        <PostsTabBar
+          activeTab={activeTab}
+          favoritedCount={favoritedIds.size}
+          onSelectTab={(tab) => {
+            setActiveTab(tab);
+            setError(null);
+          }}
+        />
       )}
 
-      <div className="space-y-3">
-        {posts.map((post) => (
-          <div key={post.id} className="rounded border bg-white p-4">
-            <div className="flex items-start justify-between">
-              <div>
-                <span className="text-xs uppercase tracking-wide text-gray-500">
-                  {TYPE_LABELS[post.type]}
-                </span>
-                <h2 className="text-lg font-semibold">{post.title}</h2>
-              </div>
-              {post.priceOffered != null && (
-                <span className="rounded bg-green-100 px-2 py-1 text-sm font-medium text-green-800">
-                  €{post.priceOffered}
-                </span>
-              )}
-            </div>
+      {activeTab === 'market' && (
+        <PostsToolbar
+          filterType={filterType}
+          searchArea={searchArea}
+          onFilterTypeChange={setFilterType}
+          onSearchChange={handleSearchChange}
+          onClearSearch={() => {
+            setSearchArea('');
+            setDebouncedSearch('');
+          }}
+        />
+      )}
 
-            {post.description && <p className="mt-1 text-sm text-gray-600">{post.description}</p>}
-
-            <p className="mt-2 text-sm">
-              <span className="font-medium">{post.pickupArea}</span>
-              {' → '}
-              <span className="font-medium">{post.dropoffArea}</span>
-            </p>
-
-            {(post.lengthCm || post.widthCm || post.heightCm || post.weightKg) && (
-              <p className="mt-1 text-xs text-gray-500">
-                {post.lengthCm ?? '?'}×{post.widthCm ?? '?'}×{post.heightCm ?? '?'} cm
-                {post.weightKg != null && ` · ${post.weightKg} kg`}
-              </p>
-            )}
-
-            <div className="mt-3 flex items-center justify-between text-xs text-gray-500">
-              <span>Posted by {post.ownerDisplayName}</span>
-              {token && (
-                <button
-                  onClick={() => handleAccept(post.id)}
-                  className="rounded bg-gray-800 px-3 py-1 text-white hover:bg-gray-700"
-                >
-                  Accept this
-                </button>
-              )}
-            </div>
-          </div>
-        ))}
-      </div>
+      {/* Main Grid */}
+      {loading ? (
+        <div className="text-center py-16 space-y-3">
+          <div className="inline-block h-8 w-8 animate-spin rounded-full border-4 border-primary border-r-transparent align-[-0.125em]" />
+          <p className="text-slate-500 text-sm font-medium">Scanning delivery listings...</p>
+        </div>
+      ) : error ? (
+        <div className="rounded-xl border border-rose-200 bg-rose-50 p-4 text-rose-700 text-sm text-center">
+          {error}
+        </div>
+      ) : posts.length === 0 ? (
+        <EmptyState
+          icon={
+            <svg className="w-10 h-10" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4" />
+            </svg>
+          }
+          title="No requests found"
+          description={
+            activeTab === 'market'
+              ? 'No listings match this filter combination.'
+              : activeTab === 'favorites'
+              ? 'You have not saved any posts yet.'
+              : 'You have not submitted any delivery requests yet.'
+          }
+        />
+      ) : (
+        <div className="grid sm:grid-cols-2 gap-6">
+          {posts.map((post) => (
+            <PostItemCard
+              key={post.id}
+              post={post}
+              isOwner={user?.userId === post.ownerId}
+              isFavorited={favoritedIds.has(post.id)}
+              token={token}
+              onToggleFavorite={handleToggleFavorite}
+              onAccept={handleAccept}
+            />
+          ))}
+        </div>
+      )}
     </div>
   );
 }
