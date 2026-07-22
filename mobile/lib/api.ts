@@ -1,10 +1,6 @@
-// Same pattern as the web app's lib/api.ts, but pointed at the deployed
-// Render API by default — mobile can't reach your laptop's localhost
-// when running on a physical device, so there's no "localhost" fallback
-// that makes sense here the way it did for web.
-//
-// Replace the URL below with your actual Render URL.
-const API_BASE_URL = 'https://furniture-marketplace-jkp7.onrender.com';
+import { useAuthStore } from '@/lib/auth-store';
+
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL ?? 'https://furniture-marketplace-jkp7.onrender.com';
 
 export class ApiError extends Error {
   status: number;
@@ -44,6 +40,12 @@ export async function apiFetch<T>(path: string, options: RequestOptions = {}): P
     } catch {
       // ignore — keep default message
     }
+
+    // Auto-logout invalid or expired sessions silently
+    if (res.status === 401) {
+      useAuthStore.getState().logout();
+    }
+
     throw new ApiError(message, res.status);
   }
 
