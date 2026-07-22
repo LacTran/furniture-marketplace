@@ -1,11 +1,11 @@
 import type { Metadata } from 'next';
 import './globals.css';
 import { ApiWarmup } from './ApiWarmup';
-import { NavLinks } from './NavLinks';
+import { Navbar } from '@/components/layout/Navbar';
 
 export const metadata: Metadata = {
-  title: 'Furniture Marketplace',
-  description: 'Small furniture delivery marketplace — portfolio project',
+  title: 'Kyydissä — Give Furniture a Second Home',
+  description: 'A lightweight two-sided marketplace connecting people rehoming furniture with local drivers with spare trunk space in Helsinki.',
 };
 
 export default function RootLayout({
@@ -15,17 +15,12 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en">
-      <body className="min-h-screen bg-gray-50 text-gray-900">
+      <body className="min-h-screen bg-[var(--color-background)] text-[var(--color-foreground)] flex flex-col font-jost">
         <ApiWarmup />
-        <nav className="border-b bg-white px-6 py-4">
-          <div className="mx-auto flex max-w-4xl items-center justify-between">
-            <a href="/" className="font-semibold">
-              Furniture Marketplace
-            </a>
-            <NavLinks />
-          </div>
-        </nav>
-        <main className="mx-auto max-w-4xl px-6 py-8">{children}</main>
+        <Navbar />
+        <main className="layout-main">
+          {children}
+        </main>
       </body>
     </html>
   );
